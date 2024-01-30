@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de cuenta - M$$</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <script>
+        if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(registration => {
+            console.log('Service Worker registrado: ', registration);
+          })
+          .catch(error => {
+            console.log('Error al registrar el Service Worker: ', error);
+          });
+      });
+    }
+  </script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-auth.js";
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+apiKey: "AIzaSyBkarzInYzQ8p_pDUeOryI6-qvPeIoO2MQ",
+authDomain: "mdolar-e2531.firebaseapp.com",
+databaseURL: "https://mdolar-e2531-default-rtdb.europe-west1.firebasedatabase.app",
+projectId: "mdolar-e2531",
+storageBucket: "mdolar-e2531.appspot.com",
+messagingSenderId: "114391863860",
+appId: "1:114391863860:web:ebee86ed4de9adfcaef061",
+measurementId: "G-LP386N5CT3"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+document.getElementById("registrarse").addEventListener('click', async function(e){
+  e.preventDefault();
+  const email = document.getElementById("signup-email").value;
+  const password = document.getElementById("signup-password").value;
+  const username = document.getElementById("signup-username").value;
+
+  // Verificar si el nombre de usuario ya existe
+  try {
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, where("username", "==", username));
+    const querySnapshot = await getDocs(q);
+    if (!querySnapshot.empty) {
+      alert("El nombre de usuario ya está en uso. Por favor, elige otro.");
+      return;
+    }
+
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    // Establecer el valor inicial para 'wallet' junto con el 'username'
+    await setDoc(doc(db, 'users', user.uid), {
+      username: username,
+      wallet: 0 // Valor inicial para la cartera
+    });
+
+    window.location.href = '/App/Home/index.html'; // Redirigir al usuario
+  } catch (error) {
+    alert("Error al registrar el usuario: " + error.message);
+  }
+});
+
+document.getElementById("iniciar-sesion").addEventListener('click', async function(e){
+  e.preventDefault();
+  const email = document.getElementById("signup-email").value;
+  const password = document.getElementById("signup-password").value;
+
+  try {
+    // Intentar iniciar sesión con el correo electrónico y la contraseña proporcionados
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    // Si el inicio de sesión es exitoso, redirigir al usuario
+    window.location.href = '/App/Home/index.html'; // Asegúrate de que esta es la URL correcta a la que quieres redirigir después del inicio de sesión
+  } catch (error) {
+    alert("Error al iniciar sesión: " + error.message);
+  }
+});
+
+
+
+
+
+
+    </script>
+    <main class="signup-container">
+        <h1>Crear cuenta en M$$</h1>
+        <form id="signup-form">
+            <div class="input-group">
+                <label for="username">Nombre de usuario</label>
+                <input type="text" id="signup-username" name="username" required>
+            </div>
+            <div class="input-group">
+                <label for="password">Contraseña</label>
+                <input type="password" id="signup-password" name="password" required>
+            </div>
+            <div class="input-group">
+                <label for="email">Correo electrónico</label>
+                <input type="email" id="signup-email" name="email" required>
+            </div>            
+            <button type="button" class="signup-button" id="registrarse">Registrarse</button>
+            <button type="button" class="signup-button" id="iniciar-sesion">Iniciar Sesión</button>
+        </form>
+          <button id="installButton" style="display: none;" class="install-button">Instalar Aplicación</button>
+          <script type="module" src="install.js"></script>
+    </main>
+</body>
+</html>
